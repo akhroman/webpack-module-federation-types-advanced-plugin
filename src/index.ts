@@ -33,9 +33,9 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
         isDownloadDisabled,
         isTypeGenDisabled,
         isOnceDownload,
-        tsConfigPath = 'tsconfig.json',
+        tsConfigPath = EDefaultConst.TSConfigFile,
         continuouslySync,
-    }: IModuleFederationTypesAdvancedPluginOption) {
+    }: IModuleFederationTypesAdvancedPluginOption = {}) {
         this.PLUGIN_NAME = this.constructor.name;
         this.remoteUrls = remoteUrls;
         this.rootDir = rootDir;
