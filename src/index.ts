@@ -99,9 +99,9 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
                         name: pluginName,
                         stage: Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE,
                     },
-                    (assets) => {
+                    (_assets) => {
                         if (this.continuouslySync) {
-                            Helper.logger.log('Compiling declare files on emit event');
+                            Helper.logger.log('Compiling declare files on thisCompilation event');
                             if ((this.remoteUrls || options.some((option) => option.remotes)) && !this.isDownloadDisabled) {
                                 clearInterval(this.compileInterval);
                                 this.compileInterval = setInterval(() => {
