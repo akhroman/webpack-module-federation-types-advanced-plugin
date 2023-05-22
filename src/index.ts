@@ -21,6 +21,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
 
     continuouslySync?: boolean;
     isAlreadyCompiled: boolean = false;
+    isAlreadyDownloaded: boolean = false;
     compileInterval?: NodeJS.Timer;
 
     constructor({
@@ -50,7 +51,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
         this.continuouslySync = continuouslySync;
     }
 
-    async apply(compiler: WebpackCompiler): Promise<void> {
+    apply(compiler: WebpackCompiler): Promise<void> {
         const pluginName = this.constructor.name;
 
         Helper.logger = compiler.getInfrastructureLogger(pluginName);
@@ -101,11 +102,15 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
                     },
                     (_assets) => {
                         if (this.continuouslySync) {
-                            Helper.logger.log('Compiling declare files on thisCompilation event');
-                            if ((this.remoteUrls || options.some((option) => option.remotes)) && !this.isDownloadDisabled) {
+                            Helper.logger.info('Compiling declare files on thisCompilation event');
+                            Helper.logger.info(`Downloading declare files every ${this.downloadTimeout} ms`);
+                            if (
+                                (this.remoteUrls || options.some((option) => option.remotes)) &&
+                                !this.isDownloadDisabled &&
+                                !this.isOnceDownload
+                            ) {
                                 clearInterval(this.compileInterval);
                                 this.compileInterval = setInterval(() => {
-                                    Helper.logger.log(`Downloading declare files every ${this.downloadTimeout} ms`);
                                     this.loadTypes(options);
                                 }, this.downloadTimeout);
                             }
@@ -121,9 +126,12 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
         }
 
         if ((this.remoteUrls || options.some((option) => option.remotes)) && !this.isDownloadDisabled) {
-            compiler.hooks.beforeCompile.tapAsync(pluginName, async () => {
-                Helper.logger.log('Initial loading of declare files');
-                await this.loadTypes(options);
+            compiler.hooks.watchRun.tap(pluginName, () => {
+                if (!this.isAlreadyDownloaded) {
+                    Helper.logger.log('Initial loading of declare files');
+                    return this.loadTypes(options);
+                }
+                return Promise.resolve();
             });
         }
     }
@@ -134,12 +142,10 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
             log.push({ message: 'The compilation and download functions are disabled', type: 'log', exit: true });
             return log;
         }
-        if (this.remoteUrls) {
-            const checkUrlInfo = Helper.checkUrl(Object.values(this.remoteUrls));
-            checkUrlInfo === 'SOME' && log.push({ message: 'WARNINIG: One or more URLs are invalid', type: 'warn', exit: false });
-            checkUrlInfo === 'NONE' && log.push({ message: 'ERROR: All provided URLs are invalid', type: 'error', exit: true });
+        if (this.remoteUrls && !Helper.checkUrl(Object.values(this.remoteUrls))) {
+            log.push({ message: 'ERROR: One or more provided URLs are invalid', type: 'error', exit: true });
+            return log;
         }
-
         return log;
     }
 
@@ -181,8 +187,9 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
     }
 
     private async loadTypes(options: TModuleFederationOptions[]) {
+        this.isAlreadyDownloaded = true;
         const remotes = options.reduce((acc: TLooseObject, option) => ({ ...acc, ...(option.remotes || {}) }), {});
         const loader = new Loader(remotes as TLooseObject, this.remoteUrls, this.emitedFileDir, this.loadTypesDir);
-        await loader.get();
+        return loader.get();
     }
 }

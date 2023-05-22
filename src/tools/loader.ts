@@ -23,6 +23,10 @@ export class Loader {
                 return acc;
             }
             const normalPath = path.split('@')[1];
+            if (!Helper.checkUrl(normalPath)) {
+                Helper.logger.error(`ERROR: Invalid URL specified for ${fileName}`);
+                return acc;
+            }
             const url = `${Loader.getDefaultPath(normalPath, defaultPath)}${fileName}.d.ts`;
             return { ...acc, [fileName]: new URL(url) };
         }, entries);
@@ -39,11 +43,8 @@ export class Loader {
             }
             return { ...acc, ...promise.value };
         }, {});
-        const unSuccessResult = Object.keys(this.parsedRemotes).filter((elem) => !Object.keys(successResult).includes(elem));
-        if (unSuccessResult.length > 0) {
-            Helper.logger.error(`ERROR: Failed to load declare files for ${unSuccessResult.join(', ')}`);
-        }
         Object.entries(successResult).forEach(([fileName, content]) => this.saveFile(fileName, content));
+        return;
     }
 
     public static getDefaultPath(url: string, defaultTypesPath: string) {
@@ -52,7 +53,7 @@ export class Loader {
 
     private async downloadFile(url: URL, fileName: string) {
         const get = url.protocol === 'https:' ? https.get : http.get;
-        Helper.logger.info(`Start load header files for ${fileName}`);
+        Helper.logger.info(`Start load declare files for ${fileName}`);
         return new Promise<TLooseObject>((resolve, reject) => {
             get(url.href, (res) => {
                 res.setEncoding('utf8');

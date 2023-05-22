@@ -14,16 +14,11 @@ export class Helper {
         }
     }
 
-    static checkUrl(urls: string | string[]): 'ALL' | 'SOME' | 'NONE' {
+    static checkUrl(urls: string | string[]): boolean {
         if (Array.isArray(urls)) {
-            if (urls.every((url) => this.isUrl(url))) {
-                return 'ALL';
-            } else if (urls.some((url) => this.isUrl(url))) {
-                return 'SOME';
-            }
-            return 'NONE';
+            return urls.every((url) => this.isUrl(url));
         }
-        return this.isUrl(urls) ? 'ALL' : 'NONE';
+        return this.isUrl(urls);
     }
 
     static get logger() {
