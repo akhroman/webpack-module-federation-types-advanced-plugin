@@ -2,7 +2,6 @@
   "name": "webpack-module-federation-types-advanced-plugin",
   "version": "1.0.1",
   "description": "Webpack Plugin that works in conjunction with the ModuleFederationPlugin to generate and share types for TypeScript.",
-  "main": "src/index.ts",
   "scripts": {
     "prepare" : "npm run build",
     "build": "tsc"
@@ -11,6 +10,8 @@
     "type": "git",
     "url": "git+https://github.com/akhroman/webpack-module-federation-types-advanced-plugin.git"
   },
+  "files": ["build/**"],
+  "main": "build/index.js",
   "author": "Roman Akhmetov",
   "license": "ISC",
   "peerDependencies": {
