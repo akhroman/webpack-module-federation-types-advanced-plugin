@@ -4,9 +4,8 @@ import { Helper } from './helpers';
 import { TModuleFederationOptions } from '../interfaces/Plugin';
 
 export class Compiler {
-    public federationOptions: TModuleFederationOptions | undefined;
-    public declareFiles?: TLooseObject = {};
-    public postProcessingContent?: TLooseObject;
+    public declareFiles: TLooseObject<string | undefined> = {};
+    public postProcessingContent?: TLooseObject<string | undefined>;
     public isSucces: undefined | boolean;
 
     constructor(public tsConfigPath: string, public globalTypesDirPath: string) {}
@@ -41,8 +40,8 @@ export class Compiler {
         `;
     }
 
-    private postGenProcess(content: string) {
-        const { exposes, name: fileName = '' } = this.federationOptions;
+    private postGenProcess(content: string, options: TModuleFederationOptions) {
+        const { exposes, name: fileName = '' } = options;
         const regExp = /declare module "(.*)"/g;
 
         return [...content.matchAll(regExp)].reduce((acc: string, [, match]) => {
@@ -65,19 +64,20 @@ export class Compiler {
         }, content);
     }
 
-    public createDeclareContent() {
-        if (!this.federationOptions) {
+    public createDeclareContent(options: TModuleFederationOptions) {
+        if (!options) {
             Helper.logger.error('ERROR: ModuleFederationPlugin options not passed');
             process.exit(1);
         }
-        const { exposes = {}, name: fileName } = this.federationOptions;
+        const { exposes = {}, name: fileName } = options;
         const globalTypesFiles = Helper.getDirFiles(this.globalTypesDirPath).filter((path) => path.endsWith('.d.ts'));
         const exposedList = [...Object.values(exposes), ...globalTypesFiles];
 
         const { compilerOptions = {} } = Compiler.getConfigFile(this.tsConfigPath);
-        const { moduleResolution, ...currentCompilerOption } = compilerOptions as ts.CompilerOptions;
+        const { moduleResolution, paths, rootDirs, ...currentCompilerOption } = compilerOptions as ts.CompilerOptions;
         const compilerOption: ts.CompilerOptions = {
             ...currentCompilerOption,
+            noEmitOnError: false,
             lib: currentCompilerOption.lib?.map((lib) => (lib.includes('.d.ts') ? lib : `lib.${lib}.d.ts`).toLowerCase()),
             emitDeclarationOnly: true,
             declaration: true,
@@ -86,7 +86,7 @@ export class Compiler {
         };
         const compilerHost = ts.createCompilerHost(compilerOption);
         compilerHost.writeFile = (declareFileName, data) =>
-            (this.declareFiles[declareFileName] = Boolean(data) ? this.postGenProcess(data) : undefined);
+            (this.declareFiles[declareFileName] = Boolean(data) ? this.postGenProcess(data, options) : undefined);
 
         const compilerProgram = ts.createProgram(exposedList, compilerOption, compilerHost);
         const { emitSkipped, diagnostics } = compilerProgram.emit();

@@ -51,7 +51,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
         this.continuouslySync = continuouslySync;
     }
 
-    apply(compiler: WebpackCompiler): Promise<void> {
+    async apply(compiler: WebpackCompiler): Promise<void> {
         const pluginName = this.constructor.name;
 
         Helper.logger = compiler.getInfrastructureLogger(pluginName);
@@ -134,6 +134,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
                 return Promise.resolve();
             });
         }
+        return;
     }
 
     private checkInputs() {
@@ -161,8 +162,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
 
         const { hasError, contents } = options.reduce(
             (acc, option) => {
-                generator.federationOptions = option;
-                const content = generator.createDeclareContent();
+                const content = generator.createDeclareContent(option);
 
                 if (content === undefined) {
                     return { ...acc, hasError: true };
@@ -170,7 +170,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
                     return { ...acc, contents: { ...acc.contents, ...content } };
                 }
             },
-            { hasError: false, contents: {} as TLooseObject },
+            { hasError: false, contents: {} as TLooseObject<string | undefined> },
         );
 
         if (!Object.keys(contents).length) {
@@ -180,15 +180,20 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
             if (hasError) {
                 printError('ERROR: Failed to compile types for one or more exposed modules.');
             }
-            Object.entries(contents).forEach(([fileName, content]) =>
-                compilation.emitAsset(`${this.rootDir}${this.emitedFileDir}${fileName}`, new sources.RawSource(content)),
-            );
+            Object.entries(contents).forEach(([fileName, content]) => {
+                if (content !== undefined) {
+                    compilation.emitAsset(`${this.rootDir}${this.emitedFileDir}${fileName}`, new sources.RawSource(content));
+                }
+            });
         }
     }
 
     private async loadTypes(options: TModuleFederationOptions[]) {
         this.isAlreadyDownloaded = true;
-        const remotes = options.reduce((acc: TLooseObject, option) => ({ ...acc, ...(option.remotes || {}) }), {});
+        const remotes = options.reduce(
+            (acc: TLooseObject, option) => ({ ...acc, ...((option.remotes as TLooseObject) || {}) }),
+            {},
+        );
         const loader = new Loader(remotes as TLooseObject, this.remoteUrls, this.emitedFileDir, this.loadTypesDir);
         return loader.get();
     }

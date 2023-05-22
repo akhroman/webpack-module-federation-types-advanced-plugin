@@ -1,5 +1,5 @@
 export enum EDefaultConst {
-    RootDir = '/',
+    RootDir = './',
     EmitedTypesDir = '@ts/',
     GlobalTypesDir = 'src/@ts/',
     LoadTypesDir = 'src/@ts/remotes/',
