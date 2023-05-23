@@ -53,7 +53,6 @@ export class Loader {
 
     private async downloadFile(url: URL, fileName: string) {
         const get = url.protocol === 'https:' ? https.get : http.get;
-        Helper.logger.info(`Start load declare files for ${fileName}`);
         return new Promise<TLooseObject>((resolve, reject) => {
             get(url.href, (res) => {
                 res.setEncoding('utf8');
