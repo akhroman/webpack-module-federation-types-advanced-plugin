@@ -18,6 +18,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
     readonly isDownloadDisabled: boolean;
     readonly isOnceDownload: boolean;
     readonly tsConfigPath: string;
+    readonly sslVerify: boolean;
 
     continuouslySync?: boolean;
     isAlreadyCompiled: boolean = false;
@@ -36,6 +37,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
         isOnceDownload,
         tsConfigPath = EDefaultConst.TSConfigFile,
         continuouslySync,
+        sslVerify = false,
     }: IModuleFederationTypesAdvancedPluginOption = {}) {
         this.PLUGIN_NAME = this.constructor.name;
         this.remoteUrls = remoteUrls;
@@ -49,6 +51,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
         this.isOnceDownload = !!isOnceDownload;
         this.tsConfigPath = tsConfigPath;
         this.continuouslySync = continuouslySync;
+        this.sslVerify = sslVerify;
     }
 
     async apply(compiler: WebpackCompiler): Promise<void> {
@@ -194,7 +197,13 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
             (acc: TLooseObject, option) => ({ ...acc, ...((option.remotes as TLooseObject) || {}) }),
             {},
         );
-        const loader = new Loader(remotes as TLooseObject, this.remoteUrls, this.emitedFileDir, this.loadTypesDir);
+        const loader = new Loader(
+            remotes as TLooseObject,
+            this.remoteUrls,
+            this.emitedFileDir,
+            this.loadTypesDir,
+            this.sslVerify,
+        );
         return loader.get();
     }
 }

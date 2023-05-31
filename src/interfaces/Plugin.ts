@@ -13,6 +13,7 @@ export interface IModuleFederationTypesAdvancedPluginOption {
     isOnceDownload?: boolean;
     tsConfigPath?: string;
     continuouslySync?: boolean;
+    sslVerify?: boolean;
 }
 
 export type TModuleFederationOptions = ConstructorParameters<typeof container.ModuleFederationPlugin>[0];

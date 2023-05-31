@@ -25,9 +25,10 @@ npm i webpack-module-federation-types-advanced-plugin
 |      `emitedFileDir` | `string`  |              `@ts`               |
 |     `globalTypesDir` | `string`  |            `src/@ts/`            |
 |       `loadTypesDir` | `string`  |        `src/@ts/remotes/`        |
-|    `downloadTimeout` | `number`  |             `60000`              |
+|    `downloadTimeout` | `number`  |             `120000`             |
 |  `isTypeGenDisabled` | `boolean` |             `false`              |
 | `isDownloadDisabled` | `boolean` |             `false`              |
 |     `isOnceDownload` | `boolean` |             `false`              |
 |       `tsConfigPath` | `string`  |         `tsconfig.json`          |
 |   `continuouslySync` | `string`  | `options.mode === 'development'` |
+|          `sslVerify` | `boolean` |             `false`              |
