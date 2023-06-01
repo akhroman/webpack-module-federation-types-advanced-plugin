@@ -17,5 +17,14 @@
   "devDependencies": {
     "typescript": "*",
     "webpack": "^5.1.0"
-  }
+  },
+  "keywords": [
+    "webpack",
+    "plugin",
+    "module-federation",
+    "module",
+    "federation",
+    "typescript",
+    "typings"
+  ]
 }
