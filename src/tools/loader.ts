@@ -62,7 +62,7 @@ export class Loader {
                     res.setEncoding('utf8');
                     const content: string[] = [];
                     res.on('data', (chunk) => content.push(chunk));
-                    res.on('end', () => resolve({ [fileName]: content.join() }));
+                    res.on('end', () => resolve({ [fileName]: content.join('') }));
                     res.on('error', () => Helper.logger.error(errorMessage));
                 } else {
                     res.destroy(new Error(errorMessage));
