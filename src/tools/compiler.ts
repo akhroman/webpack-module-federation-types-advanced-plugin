@@ -20,7 +20,13 @@ export class Compiler {
         if (error) {
             this.reportDiagnostic(error);
         }
-        return config;
+        return {
+            ...config,
+            compilerOptions: {
+                ...config.compilerOptions,
+                allowJs: false,
+            },
+        };
     }
 
     public static reportDiagnostic(diagnostic: ts.Diagnostic) {

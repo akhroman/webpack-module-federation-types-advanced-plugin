@@ -129,7 +129,7 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
         }
 
         if ((this.remoteUrls || options.some((option) => option.remotes)) && !this.isDownloadDisabled) {
-            compiler.hooks.watchRun.tap(pluginName, () => {
+            compiler.hooks.beforeRun.tapPromise(pluginName, () => {
                 if (!this.isAlreadyDownloaded) {
                     Helper.logger.log('Initial loading of declare files');
                     return this.loadTypes(options);
