@@ -14,6 +14,7 @@ export class Loader {
         public defaultPath: string,
         public loadTypesDir: string,
         public sslVerify: boolean,
+        public isAlreadyDownloaded: boolean,
     ) {
         const entries = Object.entries(remoteUrls).reduce(
             (acc: TURLObject, [fileName, path]) => ({ ...acc, [fileName]: new URL(`${path}${fileName}.d.ts`) }),
@@ -90,7 +91,7 @@ export class Loader {
             const currentContent = fs.readFileSync(outPath).toString();
             isContentEquals = currentContent === content;
         }
-        if (isContentEquals) {
+        if (isContentEquals && !this.isAlreadyDownloaded) {
             Helper.logger.info(`There are no changes for ${fileName}. Entry skipped`);
             return;
         } else if (isContentEquals === false) {

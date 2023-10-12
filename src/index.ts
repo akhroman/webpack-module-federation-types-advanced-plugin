@@ -130,6 +130,10 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
 
         if ((this.remoteUrls || options.some((option) => option.remotes)) && !this.isDownloadDisabled) {
             compiler.hooks.beforeRun.tapPromise(pluginName, () => {
+                Helper.logger.log('Initial loading of declare files');
+                return this.loadTypes(options);
+            });
+            compiler.hooks.watchRun.tap(pluginName, () => {
                 if (!this.isAlreadyDownloaded) {
                     Helper.logger.log('Initial loading of declare files');
                     return this.loadTypes(options);
@@ -192,7 +196,6 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
     }
 
     private async loadTypes(options: TModuleFederationOptions[]) {
-        this.isAlreadyDownloaded = true;
         const remotes = options.reduce(
             (acc: TLooseObject, option) => ({ ...acc, ...((option.remotes as TLooseObject) || {}) }),
             {},
@@ -203,7 +206,9 @@ export class ModuleFederationTypesAdvancedPlugin implements WebpackPluginInstanc
             this.emitedFileDir,
             this.loadTypesDir,
             this.sslVerify,
+            this.isAlreadyDownloaded,
         );
+        this.isAlreadyDownloaded = true;
         return loader.get();
     }
 }
