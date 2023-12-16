@@ -12,6 +12,5 @@
         "lib": ["es5", "es6", "esnext"],
         "rootDir": "./src/",
         "outDir": "./dist/",
-        "declaration": true,
     },
 }
